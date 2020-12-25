@@ -75,86 +75,159 @@ module.exports = {
   },
   // 新增學生
   newStudent: async (req, callback) => {
-    const { query } = req;
-    const { student_name = "", class_name = "", student_no = "", semester = "" } = query;
+    try {
+      const { query } = req;
+      const { student_name = "", class_name = "", student_no = "", semester = "" } = query;
 
-    let { total_h, total_m } = query;
+      let { total_h, total_m } = query;
 
-    total_h = parseInt(total_h) || 0;
-    total_m = parseInt(total_m) || 0;
+      total_h = parseInt(total_h) || 0;
+      total_m = parseInt(total_m) || 0;
 
-    const total_time = total_h * 60 + total_m || 0;
+      const total_time = total_h * 60 + total_m || 0;
 
-    // 判斷輸入
-    if (student_name === "" || class_name === "" || student_no === "" || semester === "") {
-      output(callback, { code: 400 });
-      return;
+      // 判斷輸入
+      if (student_name === "" || class_name === "" || student_no === "" || semester === "") {
+        output(callback, { code: 400 });
+        return;
+      }
+      if (student_no.length !== 10) {
+        output(callback, { code: 400 });
+        return;
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 判斷資料庫內是否有該學生
+      SQLStr = "SELECT count(*) as size FROM student WHERE student_no = ? AND semester = ?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
+      if (SQLData[0]["size"] !== 0) {
+        output(callback, { code: 409 }, { conn });
+        return;
+      }
+
+      // 新增學生
+      SQLStr = "INSERT INTO student(student_name, class_name, student_no, semester, total_time) VALUES (?, ?, ?, ?, ?)";
+      SQLFlag = await Promise.resolve(
+        sqlInfo.SQLQuery(conn, SQLStr, [student_name, class_name, student_no, semester, total_time])
+      );
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      output(callback, { code: 201 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
     }
-    if (student_no.length !== 10) {
-      output(callback, { code: 400 });
-      return;
-    }
-
-    // connection SQL
-    const conn = sqlInfo.conn("worktime");
-    let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
-
-    // 判斷資料庫內是否有該學生
-    SQLStr = "SELECT count(*) as size FROM student WHERE student_no = ? AND semester = ?";
-    SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
-    if (SQLData[0]["size"] !== 0) {
-      output(callback, { code: 409 }, { conn });
-      return;
-    }
-
-    // 新增學生
-    SQLStr = "INSERT INTO student(student_name, class_name, student_no, semester, total_time) VALUES (?, ?, ?, ?, ?)";
-    SQLFlag = await Promise.resolve(
-      sqlInfo.SQLQuery(conn, SQLStr, [student_name, class_name, student_no, semester, total_time])
-    );
-    if (!SQLFlag) {
-      output(callback, { code: 403 }, { conn });
-      return;
-    }
-
-    output(callback, { code: 201 }, { conn });
   },
   // 取得學生列表
   getStudentList: async (req, callback) => {
-    const { query } = req;
-    const { semester = getSemester() } = query;
+    try {
+      const { query } = req;
+      const { semester = getSemester() } = query;
 
-    // connection SQL
-    const conn = sqlInfo.conn("worktime");
-    let [SQLStr, SQLData] = ["", []];
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
 
-    SQLStr =
-      "SELECT \
-        s.id, \
-        s.student_no, \
-        s.class_name, \
-        s.student_name, \
-        sum(w.end_time - w.start_time) as working_minutes, \
-        s.total_time - sum(w.end_time - w.start_time) as remaining_minutes, \
-        s.total_time  as total_minutes \
-      FROM student s, worktime w \
-      WHERE s.student_no = w.student_no \
-        AND s.semester = w.semester \
-        AND s.semester = ? \
-      GROUP BY student_no \
-      ORDER BY student_no ASC";
-    SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester]));
+      SQLStr =
+        "SELECT \
+          s.id, \
+          s.student_no, \
+          s.class_name, \
+          s.student_name, \
+          sum(w.end_time - w.start_time) as working_minutes, \
+          s.total_time - sum(w.end_time - w.start_time) as remaining_minutes, \
+          s.total_time  as total_minutes \
+        FROM student s, worktime w \
+        WHERE s.student_no = w.student_no \
+          AND s.semester = w.semester \
+          AND s.semester = ? \
+        GROUP BY student_no \
+        ORDER BY student_no ASC";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester]));
 
-    output(
-      callback,
-      {
-        code: 200,
-        data: {
-          semester,
-          student_list: [...SQLData],
+      output(
+        callback,
+        {
+          code: 200,
+          data: {
+            semester,
+            student_list: [...SQLData],
+          },
         },
-      },
-      { conn }
-    );
+        { conn }
+      );
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+  // 修改學生資料
+  updateStudent: async (req, callback) => {
+    try {
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      output(callback, { code: 201 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+  // 刪除學生資料
+  updateStudent: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { semester = "", student_no = "" } = query;
+
+      if (semester === "" || student_no === "") {
+        output(callback, { code: 400 }, { conn });
+        return;
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 刪除學生的時數
+      SQLStr = "DELETE FROM worktime WHERE semester=? AND student_no=?";
+      SQLFlag = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester, student_no]));
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      // 刪除學生
+      SQLStr = "DELETE FROM student WHERE semester=? AND student_no=?";
+      SQLFlag = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester, student_no]));
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      output(callback, { code: 204 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+  // 取得前學期學生列表
+  updateStudent: async (req, callback) => {
+    try {
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData] = ["", []];
+
+      output(callback, { code: 200 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
   },
 };
