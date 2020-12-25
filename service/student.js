@@ -290,4 +290,42 @@ module.exports = {
       throw err;
     }
   },
+
+  // 繼承學生
+  extendsStudent: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { id, semester } = query;
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 取得前學期學生資料
+      SQLStr = "SELECT * FROM student WHERE id=?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [id]));
+      if (SQLData.length !== 1) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      // 提取前學期學生資料
+      const { student_name, class_name, student_no, total_time } = SQLData[0];
+
+      // 將學生資料新增至本學期
+      SQLStr = "INSERT INTO (student_name, class_name, student_no, total_time, semester) VALUES (?, ?, ?, ?, ?)";
+      SQLFlag = await Promise.resolve(
+        sqlInfo.SQLQuery(conn, SQLStr, [student_name, class_name, student_no, total_time, semester])
+      );
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      output(callback, { code: 201 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
 };
