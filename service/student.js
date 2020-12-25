@@ -232,7 +232,7 @@ module.exports = {
       let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
       SQLStr = "SELECT count(*) as size FROM student WHERE semester=? AND student_no=?";
       SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester, student_no]));
-      if (SQLData[0]["size"] !== 1) {
+      if (SQLData[0]["size"] === 0) {
         output(callback, { code: 410 }, { conn });
         return;
       }
@@ -335,8 +335,16 @@ module.exports = {
       // 提取前學期學生資料
       const { student_name, class_name, student_no, total_time } = SQLData[0];
 
+      // 確認是否已被繼承
+      SQLStr = "SELECT count(*) as size FROM student WHERE student_no=? AND semester=?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
+      if (SQLData[0]["size"] !== 0) {
+        output(callback, { code: 409 }, { conn });
+        return;
+      }
+
       // 將學生資料新增至本學期
-      SQLStr = "INSERT INTO (student_name, class_name, student_no, total_time, semester) VALUES (?, ?, ?, ?, ?)";
+      SQLStr = "INSERT INTO student(student_name, class_name, student_no, total_time, semester) VALUES (?, ?, ?, ?, ?)";
       SQLFlag = await Promise.resolve(
         sqlInfo.SQLQuery(conn, SQLStr, [student_name, class_name, student_no, total_time, semester])
       );
