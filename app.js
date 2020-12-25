@@ -7,7 +7,7 @@ const PORT = 8080;
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use("/api", require("./routes"));
+app.use("/api/worktime/v2", require("./routes"));
 
 app.listen(PORT, () => {
   console.log(`This service running in port ${PORT}`);
