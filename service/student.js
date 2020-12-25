@@ -22,7 +22,7 @@ module.exports = {
             results: SQLData,
           },
         },
-        conn
+        { conn }
       );
     } catch (err) {
       output(callback, { code: 500 });
@@ -66,11 +66,57 @@ module.exports = {
             ...SQLData[0],
           },
         },
-        conn
+        { conn }
       );
     } catch (err) {
       output(callback, { code: 500 });
       throw err;
     }
+  },
+  // 新增學生
+  newStudent: async (req, callback) => {
+    const { query } = req;
+    const { student_name = "", class_name = "", student_no = "", semester = "" } = query;
+
+    let { total_h, total_m } = query;
+
+    total_h = parseInt(total_h) || 0;
+    total_m = parseInt(total_m) || 0;
+
+    const total_time = total_h * 60 + total_m || 0;
+
+    // 判斷輸入
+    if (student_name === "" || class_name === "" || student_no === "" || semester === "") {
+      output(callback, { code: 400 });
+      return;
+    }
+    if (student_no.length !== 10) {
+      output(callback, { code: 400 });
+      return;
+    }
+
+    // connection SQL
+    const conn = sqlInfo.conn("worktime");
+    let [SQLStr, SQLData, SQLFlag] = ["", [], null];
+
+    // 判斷資料庫內是否有該學生
+    SQLStr = "SELECT count(*) as size FROM student WHERE student_no = ? AND semester = ?";
+    SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
+    if (SQLData[0]["size"] !== 0) {
+      output(callback, { code: 409 }, { conn });
+      return;
+    }
+
+    // 新增學生
+    SQLStr = "INSERT INTO student(student_name, class_name, student_no, semester, total_time) VALUES (?, ?, ?, ?, ?)";
+    SQLFlag = await Promise.resolve(
+      sqlInfo.SQLQuery(conn, SQLStr, [student_name, class_name, student_no, semester, total_time])
+    );
+    if (!SQLFlag) {
+      output(callback, { code: 403 }, { conn });
+      return;
+    }
+
+    output(callback, { code: 201 }, { conn });
   },
 };
