@@ -17,4 +17,46 @@ router.get("/detail", (req, res) => {
   });
 });
 
+router
+  .route("/")
+  // 新增學生
+  .post((req, res) => {
+    Student.newStudent(req, (response) => {
+      output(res, response);
+    });
+  })
+  // 取得學生列表
+  .get((req, res) => {
+    Student.getStudentList(req, (response) => {
+      output(res, response);
+    });
+  })
+  // 修改學生資料
+  .put((req, res) => {
+    Student.updateStudent(req, (response) => {
+      output(res, response);
+    });
+  })
+  // 刪除學生資料
+  .delete((req, res) => {
+    Student.deleteStudent(req, (response) => {
+      output(res, response);
+    });
+  });
+
+router
+  .route("/extends")
+  // 取得前學期學生列表
+  .get((req, res) => {
+    Student.getOldStudentList(req, (response) => {
+      output(res, response);
+    });
+  })
+  // 繼承學生
+  .post((req, res) => {
+    Student.extendsStudent(req, (response) => {
+      output(res, response);
+    });
+  });
+
 module.exports = router;
