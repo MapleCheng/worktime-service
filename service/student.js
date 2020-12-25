@@ -228,14 +228,15 @@ module.exports = {
         return;
       }
 
+      // 取得前學期
       const semester_str = semester.split("-");
-
       semester = semester_str[1] === 1 ? `${semester_str[0]}-2` : `${semester_str[0] + 1}-1`;
 
       // connection SQL
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData] = ["", []];
 
+      // 取得前學期之學生列表
       SQLStr = "SELECT * FROM student WHERE semester=? ORDER BY student_no DESC";
       SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester]));
 
