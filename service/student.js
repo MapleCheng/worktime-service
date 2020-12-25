@@ -79,11 +79,10 @@ module.exports = {
       const { query } = req;
       const { student_name = "", class_name = "", student_no = "", semester = "" } = query;
 
+      // 計算總時數
       let { total_h, total_m } = query;
-
       total_h = parseInt(total_h) || 0;
       total_m = parseInt(total_m) || 0;
-
       const total_time = total_h * 60 + total_m || 0;
 
       // 判斷輸入
@@ -170,9 +169,44 @@ module.exports = {
   // 修改學生資料
   updateStudent: async (req, callback) => {
     try {
+      const { query } = req;
+      const { id = 0, student_name = "", class_name = "", student_no = "", semester = "" } = query;
+
+      // 計算總時數
+      let { total_h, total_m } = query;
+      total_h = parseInt(total_h) || 0;
+      total_m = parseInt(total_m) || 0;
+      const total_time = total_h * 60 + total_m || 0;
+
+      // 判斷輸入
+      if (id === 0 || student_name === "" || class_name === "" || student_no === "" || semester === "") {
+        output(callback, { code: 400 });
+        return;
+      }
+      if (student_no.length !== 10) {
+        output(callback, { code: 400 });
+        return;
+      }
+
       // connection SQL
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 設定更新的學生資料
+      const updateQuery = {
+        student_name,
+        class_name,
+        student_no,
+        total_time,
+      };
+
+      // 更新學生資料
+      SQLStr = "UPDATE member SET ? WHERE id = ?";
+      SQLFlag = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [updateQuery, id]));
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
 
       output(callback, { code: 201 }, { conn });
     } catch (err) {
