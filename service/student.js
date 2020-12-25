@@ -97,7 +97,7 @@ module.exports = {
 
     // connection SQL
     const conn = sqlInfo.conn("worktime");
-    let [SQLStr, SQLData, SQLFlag] = ["", [], null];
+    let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
 
     // 判斷資料庫內是否有該學生
     SQLStr = "SELECT count(*) as size FROM student WHERE student_no = ? AND semester = ?";
@@ -118,5 +118,43 @@ module.exports = {
     }
 
     output(callback, { code: 201 }, { conn });
+  },
+  // 取得學生列表
+  getStudentList: async (req, callback) => {
+    const { query } = req;
+    const { semester = getSemester() } = query;
+
+    // connection SQL
+    const conn = sqlInfo.conn("worktime");
+    let [SQLStr, SQLData] = ["", []];
+
+    SQLStr =
+      "SELECT \
+        s.id, \
+        s.student_no, \
+        s.class_name, \
+        s.student_name, \
+        sum(w.end_time - w.start_time) as working_minutes, \
+        s.total_time - sum(w.end_time - w.start_time) as remaining_minutes, \
+        s.total_time  as total_minutes \
+      FROM student s, worktime w \
+      WHERE s.student_no = w.student_no \
+        AND s.semester = w.semester \
+        AND s.semester = ? \
+      GROUP BY student_no \
+      ORDER BY student_no ASC";
+    SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester]));
+
+    output(
+      callback,
+      {
+        code: 200,
+        data: {
+          semester,
+          student_list: [...SQLData],
+        },
+      },
+      { conn }
+    );
   },
 };
