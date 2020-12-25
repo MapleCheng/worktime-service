@@ -181,7 +181,7 @@ module.exports = {
     }
   },
   // 刪除學生資料
-  updateStudent: async (req, callback) => {
+  deleteStudent: async (req, callback) => {
     try {
       const { query } = req;
       const { semester = "", student_no = "" } = query;
@@ -218,13 +218,38 @@ module.exports = {
     }
   },
   // 取得前學期學生列表
-  updateStudent: async (req, callback) => {
+  getOldStudentList: async (req, callback) => {
     try {
+      const { query } = req;
+      let { semester = "" } = query;
+
+      if (semester === "") {
+        output(callback, { code: 400 }, { conn });
+        return;
+      }
+
+      const semester_str = semester.split("-");
+
+      semester = semester_str[1] === 1 ? `${semester_str[0]}-2` : `${semester_str[0] + 1}-1`;
+
       // connection SQL
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData] = ["", []];
 
-      output(callback, { code: 200 }, { conn });
+      SQLStr = "SELECT * FROM student WHERE semester=? ORDER BY student_no DESC";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester]));
+
+      output(
+        callback,
+        {
+          code: 200,
+          data: {
+            size: SQLData.length,
+            results: [...SQLData],
+          },
+        },
+        { conn }
+      );
     } catch (err) {
       output(callback, { code: 500 });
       throw err;
