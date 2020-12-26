@@ -19,6 +19,7 @@ module.exports = {
       // connection SQL
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
       SQLStr =
         "SELECT \
           count(*) as size \
@@ -54,6 +55,37 @@ module.exports = {
       }
 
       output(callback, { code: 201 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+  getWorkTime: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { semester = "", student_no = "" } = query;
+
+      // 判斷書入
+      if (semester === "" || student_no === "") {
+        output(callback, { code: 400 });
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      SQLStr =
+        "SELECT \
+          work_date, \
+          start_time, \
+          end_time \
+        FROM worktime \
+        WHERE student_no=? \
+          AND semester=? \
+        ORDER BY work_date ASC, start_time ASC";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
+
+      output(callback, { code: 200, data: [...SQLData] }, { conn });
     } catch (err) {
       output(callback, { code: 500 });
       throw err;

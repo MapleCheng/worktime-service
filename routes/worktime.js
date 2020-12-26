@@ -10,6 +10,12 @@ router
     Worktime.newWorkTime(req, (response) => {
       output(res, response);
     });
+  })
+  // 取得學生時數
+  .get((req, res) => {
+    Worktime.getWorkTime(req, (response) => {
+      output(res, response);
+    });
   });
 
 module.exports = router;
