@@ -29,4 +29,11 @@ router
     });
   });
 
+// 取得詳細服務時數
+router.get("/detail", (req, res) => {
+  Worktime.getWorkTimeDetail(req, (response) => {
+    output(res, response);
+  });
+});
+
 module.exports = router;

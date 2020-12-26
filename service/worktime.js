@@ -93,14 +93,25 @@ module.exports = {
         "SELECT \
           work_date, \
           start_time, \
-          end_time \
+          end_time, \
+          finished \
         FROM worktime \
         WHERE student_no=? \
           AND semester=? \
         ORDER BY work_date ASC, start_time ASC";
       SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [student_no, semester]));
 
-      output(callback, { code: 200, data: [...SQLData] }, { conn });
+      output(
+        callback,
+        {
+          code: 200,
+          data: {
+            size: SQLData.length,
+            results: [...SQLData],
+          },
+        },
+        { conn }
+      );
     } catch (err) {
       output(callback, { code: 500 });
       throw err;
@@ -211,6 +222,39 @@ module.exports = {
       }
 
       output(callback, { code: 204 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+
+  // 取得詳細服務時數
+  getWorkTimeDetail: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { id = 0 } = query;
+
+      // 判斷輸入
+      if (id === 0) {
+        output(callback, { code: 400 });
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 取得服務時數
+      SQLStr =
+        "SELECT \
+          work_date, \
+          start_time, \
+          end_time, \
+          finished \
+        FROM worktime \
+        WHERE id=?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [id]));
+
+      output(callback, { code: 200, data: { ...SQLData[0] } }, { conn });
     } catch (err) {
       output(callback, { code: 500 });
       throw err;
