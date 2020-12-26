@@ -4,6 +4,7 @@ const getSemester = require("../utils/getSemester");
 const moment = require("moment");
 
 module.exports = {
+  // 新增學生服務時數
   newWorkTime: async (req, callback) => {
     try {
       const { query, body } = req;
@@ -72,7 +73,9 @@ module.exports = {
       throw err;
     }
   },
-  getWorkTime: async (req, callback) => {
+
+  // 取得學生服務時數列表
+  getWorkTimeList: async (req, callback) => {
     try {
       const { query } = req;
       const { semester = "", student_no = "" } = query;
@@ -103,6 +106,8 @@ module.exports = {
       throw err;
     }
   },
+
+  // 更新學生服務時數
   updateWorkTime: async (req, callback) => {
     try {
       const { query, body } = req;
@@ -175,6 +180,37 @@ module.exports = {
       }
 
       output(callback, { code: 201 }, { conn });
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+
+  // 刪除學生服務時數
+  deleteWorkTime: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { id = 0 } = query;
+
+      // 判斷輸入
+      if (id === 0) {
+        output(callback, { code: 400 });
+        return;
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // 刪除學生服務時數
+      SQLStr = "DELETE FROM worktime WHERE id=?";
+      SQLFlag = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [id]));
+      if (!SQLFlag) {
+        output(callback, { code: 403 }, { conn });
+        return;
+      }
+
+      output(callback, { code: 204 }, { conn });
     } catch (err) {
       output(callback, { code: 500 });
       throw err;

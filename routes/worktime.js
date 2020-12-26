@@ -11,15 +11,20 @@ router
       output(res, response);
     });
   })
-  // 取得學生服務時數
+  // 取得學生服務時數列表
   .get((req, res) => {
-    Worktime.getWorkTime(req, (response) => {
+    Worktime.getWorkTimeList(req, (response) => {
       output(res, response);
     });
   })
   // 修改學生服務時數
   .put((req, res) => {
     Worktime.updateWorkTime(req, (response) => {
+      output(res, response);
+    });
+  })
+  .delete((req, res) => {
+    Worktime.deleteWorkTime(req, (response) => {
       output(res, response);
     });
   });
