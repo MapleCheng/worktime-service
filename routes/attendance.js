@@ -10,6 +10,11 @@ router
     Attendance.getAttendanceType(req, (response) => {
       output(res, response);
     });
+  })
+  .patch((req, res) => {
+    Attendance.onAttendance(req, (response) => {
+      output(res, response);
+    });
   });
 
 module.exports = router;
