@@ -33,6 +33,7 @@ module.exports = {
           code: 200,
           data: {
             attendanceType: SQLData[0]["size"] === 0 ? true : false,
+            datetime: new Date(),
           },
         },
         { conn }
@@ -102,6 +103,9 @@ module.exports = {
           code: 201,
           data: {
             attendanceType,
+            datetime: new Date(),
+            today: work_date,
+            nowtime: now_time,
           },
         },
         { conn }

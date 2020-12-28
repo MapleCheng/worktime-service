@@ -10,7 +10,7 @@ module.exports = {
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
 
-      SQLStr = "SELECT student_no FROM student WHERE semester = ?  ORDER BY student_no";
+      SQLStr = "SELECT student_no FROM student WHERE semester = ? GROUP BY student_no ORDER BY student_no";
       SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [getSemester()]));
 
       output(
