@@ -216,7 +216,7 @@ module.exports = {
     try {
       const { query, body } = req;
       const { id = 0 } = query;
-      const { student_name = "", class_name = "", student_no = "", semester = "" } = body;
+      const { student_name = "", class_name = "", student_no = "" } = body;
 
       // 計算總時數
       let { total_h, total_m } = body;
@@ -225,7 +225,7 @@ module.exports = {
       const total_time = total_h * 60 + total_m || 0;
 
       // 判斷輸入
-      if (id === 0 || student_name === "" || class_name === "" || student_no === "" || semester === "") {
+      if (id === 0 || student_name === "" || class_name === "" || student_no === "") {
         output(callback, { code: 400 });
         return;
       }
