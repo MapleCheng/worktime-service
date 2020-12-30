@@ -10,6 +10,13 @@ router.get("/number", (req, res) => {
   });
 });
 
+// 取得學生資訊
+router.get("/info", (req, res) => {
+  Student.getStudentInfo(req, (response) => {
+    output(res, response);
+  });
+});
+
 // 取得學生詳細資訊
 router.get("/detail", (req, res) => {
   Student.getStudentDetail(req, (response) => {

@@ -30,8 +30,8 @@ module.exports = {
     }
   },
 
-  // 取得學生詳情資訊
-  getStudentDetail: async (req, callback) => {
+  // 取得學生資訊
+  getStudentInfo: async (req, callback) => {
     try {
       const { query } = req;
       const { student_no = "" } = query;
@@ -55,6 +55,51 @@ module.exports = {
         LEFT OUTER JOIN worktime w ON w.student_no = s.student_no AND w.semester = s.semester \
         WHERE s.semester = ? AND s.student_no = ?";
       SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [getSemester(), student_no]));
+
+      output(
+        callback,
+        {
+          code: 200,
+          data: {
+            ...SQLData[0],
+          },
+        },
+        { conn }
+      );
+    } catch (err) {
+      output(callback, { code: 500 });
+      throw err;
+    }
+  },
+
+  // 取得學生詳細資訊
+  getStudentDetail: async (req, callback) => {
+    try {
+      const { query } = req;
+      const { semester, student_no = "" } = query;
+
+      if (student_no === "") {
+        output(callback, { code: 400 });
+        return;
+      }
+
+      // connection SQL
+      const conn = sqlInfo.conn("worktime");
+      let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
+
+      // student detail
+      SQLStr =
+        "SELECT s.id, \
+          s.student_name, \
+          s.student_no, \
+          s.semester, \
+          s.class_name, \
+          s.total_time as total_minutes, \
+          s.total_time - COALESCE(sum(w.end_time - w.start_time), 0) as remaining_time \
+        FROM student s \
+        LEFT OUTER JOIN worktime w ON w.student_no = s.student_no AND w.semester = s.semester \
+        WHERE s.semester = ? AND s.student_no = ?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester, student_no]));
 
       output(
         callback,
