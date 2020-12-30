@@ -220,9 +220,9 @@ module.exports = {
   deleteStudent: async (req, callback) => {
     try {
       const { query } = req;
-      const { semester = "", student_no = "" } = query;
+      const { id = 0 } = query;
 
-      if (semester === "" || student_no === "") {
+      if (id === 0) {
         output(callback, { code: 400 }, { conn });
         return;
       }
@@ -230,12 +230,16 @@ module.exports = {
       // connection SQL
       const conn = sqlInfo.conn("worktime");
       let [SQLStr, SQLData, SQLFlag] = ["", [], undefined];
-      SQLStr = "SELECT count(*) as size FROM student WHERE semester=? AND student_no=?";
-      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [semester, student_no]));
-      if (SQLData[0]["size"] === 0) {
+
+      // 查詢欲刪除的學生
+      SQLStr = "SELECT semester, student_no FROM student WHERE id=?";
+      SQLData = await Promise.resolve(sqlInfo.SQLQuery(conn, SQLStr, [id]));
+      if (SQLData.length !== 1) {
         output(callback, { code: 410 }, { conn });
         return;
       }
+
+      const { semester, student_no } = SQLData[0];
 
       // 刪除學生的時數
       SQLStr = "DELETE FROM worktime WHERE semester=? AND student_no=?";
