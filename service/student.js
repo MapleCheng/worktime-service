@@ -367,7 +367,12 @@ module.exports = {
   extendsStudent: async (req, callback) => {
     try {
       const { query } = req;
-      const { id, semester } = query;
+      const { id = 0, semester = "" } = query;
+
+      if (id === 0 || semester === "") {
+        output(callback, { code: 400 });
+        return;
+      }
 
       // connection SQL
       const conn = sqlInfo.conn("worktime");
