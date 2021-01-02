@@ -12,7 +12,13 @@ module.exports = {
       const { work_date = "", start_time = 0, end_time = 0 } = body;
 
       // 判斷輸入
-      if (student_no === "" || semester === "" || work_date === "" || start_time === 0 || end_time === 0) {
+      if (
+        student_no === "" ||
+        semester === "" ||
+        work_date === "" ||
+        start_time === 0 ||
+        end_time === 0
+      ) {
         output(callback, { code: 400 });
         return;
       }
@@ -83,6 +89,7 @@ module.exports = {
       // 判斷輸入
       if (semester === "" || student_no === "") {
         output(callback, { code: 400 });
+        return;
       }
 
       // connection SQL
@@ -91,6 +98,7 @@ module.exports = {
 
       SQLStr =
         "SELECT \
+          worktime.id, \
           work_date, \
           start_time, \
           end_time, \
@@ -246,9 +254,11 @@ module.exports = {
       // 取得服務時數
       SQLStr =
         "SELECT \
+          id, \
           work_date, \
           start_time, \
           end_time, \
+          (end_time - start_time) as work_time, \
           finished \
         FROM worktime \
         WHERE id=?";
