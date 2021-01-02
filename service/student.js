@@ -95,7 +95,8 @@ module.exports = {
           s.semester, \
           s.class_name, \
           s.total_time as total_minutes, \
-          s.total_time - COALESCE(sum(w.end_time - w.start_time), 0) as remaining_time \
+          COALESCE(sum(w.end_time - w.start_time)) as working_minutes, \
+          s.total_time - COALESCE(sum(w.end_time - w.start_time), 0) as remaining_minutes \
         FROM student s \
         LEFT OUTER JOIN worktime w ON w.student_no = s.student_no AND w.semester = s.semester \
         WHERE s.semester = ? AND s.student_no = ?";
