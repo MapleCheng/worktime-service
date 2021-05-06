@@ -2,7 +2,7 @@ const mysql = require("mysql");
 
 const SQL_HOST = "localhost";
 const SQL_USER = "root";
-const SQL_PASS = "maple";
+const SQL_PASS = "student";
 
 const databases = {
   worktime: "worktime",
